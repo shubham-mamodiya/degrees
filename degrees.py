@@ -1,5 +1,6 @@
 import csv
 import sys
+import random
 
 from util import Node, StackFrontier, QueueFrontier
 
@@ -91,46 +92,85 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-    num_explored = 0
+    source_frontier = shortest_path_to_kevin(source)
+    target_frontier = shortest_path_to_kevin(target)
 
-    #Start with a frontier that contains the initial state. 
+    if source_frontier == None or target_frontier == None:
+        return None
+    
+    path = []
+
+    for node in source_frontier.frontier[1:]:
+        print(f"Node {node.state} {node.parent} {node.action}")
+        path.append((node.action, node.state))
+
+    target_frontier.frontier[0].action = target_frontier.frontier[-1].action
+    target_frontier.frontier.reverse()
+
+    for node in target_frontier.frontier[1:]:
+        print(f"Node {node.state} {node.parent} {node.action}")
+        path.append((node.action, node.state))
+
+    return path
+
+
+def shortest_path_to_kevin(source):
+    """
+    Returns the shortest stack (path) source (actor)
+    to Kevin Bacon 
+
+    If no possible path, returns None
+    """
+
+    """
+    The main idea is to find shortest path to kevin.
+    Which is possible and only takes Six steps at maximum 
+    
+    At O(6)
+    """
     start = Node(state=source, parent=None, action=None)
     frontier = StackFrontier()
     frontier.add(start)
-
-    #Start with an empty explored set. 
+    path_found = False # 1
+    path = StackFrontier()
+    path.add(start)
     explored = set()
 
-    #Repeat: 
-    while True:
-
-        #If the frontier is empty, then no solution. 
+    for _ in range(6):
+        # first finding path source to kevin
         if frontier.empty():
             return None
         
-        #Remove a node from the frontier. 
         node = frontier.remove()
-        num_explored += 1
-
-        #If node contains goal state, return the solution. 
-        if node.state == target:
-            path = []
-            while node.parent is not None:
-                path.append((node.action, node.state))
-                node = node.parent
-            path.reverse()
-            print(num_explored)
+        if node.state == "102":# Kevin
             return path
-        #Add the node to the explored set. 
+        
         explored.add(node.state)
 
-        #Expand node, add resulting nodes to the frontier if they 
-        #aren't already in the frontier or the explored set.
-        for movie_id, star_id in neighbors_for_person(node.state):
-            if not frontier.contains_state(star_id) and star_id not in explored:
+        neighbors = list(neighbors_for_person(node.state))
+        if not neighbors:
+            return None
+        
+        for movie_id, star_id in neighbors:
+            if star_id == "102": # kevin
                 child = Node(state=star_id, parent=node, action=movie_id)
                 frontier.add(child)
-
+                path.add(child)
+                path_found = True # 2
+                break
+        # if kevin not in neighbors then add any neighbor randomly
+        if path_found == False:# 2
+            neighbor_added = False # 3
+            while neighbor_added == False:# 3
+                neighbor = random.choice(neighbors)
+                actor = neighbor[1]
+                movie = neighbor[0]
+                if actor not in explored and not frontier.contains_state(actor):
+                    child = Node(state=actor, parent=node, action=movie)
+                    frontier.add(child)
+                    path.add(child)
+                    neighbor_added = True # 3
+    return None
 
 def person_id_for_name(name):
     """
