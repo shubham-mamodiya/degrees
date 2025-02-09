@@ -1,8 +1,8 @@
 import csv
-import sys
 import random
+import sys
 
-from util import Node, StackFrontier, QueueFrontier
+from util import Node, QueueFrontier, StackFrontier
 
 # Maps names to a set of corresponding person_ids
 names = {}
@@ -25,7 +25,7 @@ def load_data(directory):
             people[row["id"]] = {
                 "name": row["name"],
                 "birth": row["birth"],
-                "movies": set()
+                "movies": set(),
             }
             if row["name"].lower() not in names:
                 names[row["name"].lower()] = {row["id"]}
@@ -39,7 +39,7 @@ def load_data(directory):
             movies[row["id"]] = {
                 "title": row["title"],
                 "year": row["year"],
-                "stars": set()
+                "stars": set(),
             }
 
     # Load stars
@@ -97,18 +97,16 @@ def shortest_path(source, target):
 
     if source_frontier == None or target_frontier == None:
         return None
-    
+
     path = []
 
     for node in source_frontier.frontier[1:]:
-        print(f"Node {node.state} {node.parent} {node.action}")
         path.append((node.action, node.state))
 
     target_frontier.frontier[0].action = target_frontier.frontier[-1].action
     target_frontier.frontier.reverse()
 
     for node in target_frontier.frontier[1:]:
-        print(f"Node {node.state} {node.parent} {node.action}")
         path.append((node.action, node.state))
 
     return path
@@ -117,7 +115,7 @@ def shortest_path(source, target):
 def shortest_path_to_kevin(source):
     """
     Returns the shortest stack (path) source (actor)
-    to Kevin Bacon 
+    to Kevin Bacon
 
     If no possible path, returns None
     """
@@ -131,7 +129,8 @@ def shortest_path_to_kevin(source):
     start = Node(state=source, parent=None, action=None)
     frontier = StackFrontier()
     frontier.add(start)
-    path_found = False # 1
+    path_found = False  # 1
+
     path = StackFrontier()
     path.add(start)
     explored = set()
@@ -140,28 +139,29 @@ def shortest_path_to_kevin(source):
         # first finding path source to kevin
         if frontier.empty():
             return None
-        
+
         node = frontier.remove()
-        if node.state == "102":# Kevin
+        if node.state == "102":  # Kevin
             return path
-        
+
         explored.add(node.state)
 
         neighbors = list(neighbors_for_person(node.state))
         if not neighbors:
             return None
-        
+
         for movie_id, star_id in neighbors:
-            if star_id == "102": # kevin
+            if star_id == "102":  # kevin
                 child = Node(state=star_id, parent=node, action=movie_id)
                 frontier.add(child)
                 path.add(child)
-                path_found = True # 2
+                path_found = True  # 2
+
                 break
         # if kevin not in neighbors then add any neighbor randomly
-        if path_found == False:# 2
-            neighbor_added = False # 3
-            while neighbor_added == False:# 3
+        if path_found == False:  # 2
+            neighbor_added = False  # 3
+            while neighbor_added == False:  # 3
                 neighbor = random.choice(neighbors)
                 actor = neighbor[1]
                 movie = neighbor[0]
@@ -169,8 +169,9 @@ def shortest_path_to_kevin(source):
                     child = Node(state=actor, parent=node, action=movie)
                     frontier.add(child)
                     path.add(child)
-                    neighbor_added = True # 3
+                    neighbor_added = True  # 3
     return None
+
 
 def person_id_for_name(name):
     """
@@ -180,6 +181,7 @@ def person_id_for_name(name):
     person_ids = list(names.get(name.lower(), set()))
     if len(person_ids) == 0:
         return None
+
     elif len(person_ids) > 1:
         print(f"Which '{name}'?")
         for person_id in person_ids:
